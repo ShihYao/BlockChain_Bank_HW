@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>DApp-example: Bank</title>
+	<style>
+		.flex {
+			display: flex;
+		}
+
+		.item {
+			flex: 1;
+			padding: 2rem;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="flex">
+		<div class="item">
+			<h3>銀行合約</h3>
+			<h5 id="contractAddress">合約位址: </h5>
+			<input id="deployedContractAddressInput" type="text" placeholder="請輸入既有合約位址" />
+			<button id="loadDeployedContractButton">載入既有合約位址</button>
+			<button id="deployNewContractButton">部署新合約</button>
+
+			<hr>
+			<h3>刪除合約</h3>
+			<button id="killContractButton">刪除目前合約</button>
+
+			<hr>
+			<h3>帳戶登入</h3>
+			<select id="whoami"></select>
+			<button id="whoamiButton">登入</button>
+			<button id="copyButton">複製</button>
+
+			<hr>
+			<h3 id="accountStatus">帳戶狀態</h3>
+			<h5 id="ethBalance">以太帳戶餘額 (wei): </h5>
+			<h5 id="bankBalance">銀行ETH餘額 (wei): </h5>
+
+			<hr>
+			<h3 id="updateCoin">更新餘額</h3>
+			<button id="update">執行</button>
+
+			<hr>
+			<h3>存款</h3>
+			<input id="deposit" type="number" placeholder="請輸入存款額度 (ether)">
+			<button id="depositButton">執行</button>
+
+			<hr>
+			<h3>提款</h3>
+			<input id="withdraw" type="number" placeholder="請輸入提款額度 (ether)">
+			<button id="withdrawButton">執行</button>
+
+			<hr>
+			<h3>轉帳 ETH</h3>
+			<input id="transferEtherTo" type="text" placeholder="請輸入轉帳對象">
+			<input id="transferEtherValue" type="number" placeholder="請輸入轉帳額度 (ether)">
+			<button id="transferEtherButton">執行</button>
+            
+            <hr>
+            <h3>購買定存</h3>       
+            <input id="principal" type=:"number" placeholder="請輸入本金">
+            <input id="numOfPeriod" type="number" placeholder="請輸入定存期數">
+            <button id="buyCdButton">購買</button>
+            <h5 id="money">金額: </h5>
+            <h5 id="year">期數: </h5>
+            <button id="expireButton">合約期滿</button>   <br>
+            <input id="completedPeriod" type="number" placeholder="已完成期數">
+            <button id="earlyExpireButton">提前解約</button>
+
+            <h3>期數  |  利率</h3>
+			０１  |  0.01</br >
+			０２  |  0.02</br >
+			０３  |  0.03</br >
+			０４  |  0.04</br >
+			０５  |  0.05</br >
+			０６  |  0.06</br >
+			０７  |  0.07</br >
+			０８  |  0.08</br >
+			０９  |  0.09</br >
+			１０  |  0.10</br >
+			１１  |  0.11</br >
+			１２  |  0.12</br >
+            
+            
+		</div>
+		<div class="item" style="width:500px;">
+			<h3>活動紀錄</h3>
+			<pre id="logger"></pre>
+		</div>
+	</div>
+
+	<script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
+	<script src="js/web3.min.js"></script>
+	<script src="js/bank.js"></script>
+	<script src="js/index.js"></script>
+</body>
+
+</html>

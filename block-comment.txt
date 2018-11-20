@@ -1,0 +1,203 @@
+在bank.sol中
+
+//用mapping來定義儲存定存的金額(principal)及期數(numOfPeriod)，指定address作為鍵的型別，指定uint256作為值的型別
+    mapping (address => uint256) private principal;
+    mapping (address => uint256) private numOfPeriod;
+
+//event(事件)：CDEvent(購買定存),terminateFullCDEvent(到期解約),terminateEarlyCDEvent(提前解約),用於通知前端 web3.js
+    event CDEvent(address indexed from, uint256 value,uint256 times,uint256 timestamp);
+    event terminateFullCDEvent(address indexed from, uint256 value, uint256 timestamp);
+    event terminateEarlyCDEvent(address indexed from, uint256 value, uint256 timestamp);
+
+//定存購買，_period為呼叫的參數，是定存的到期期數，將定存金額及期數存起來，require則是用來判斷期數是否介於0-12之間
+    function CD(uint256 time) public payable{
+        principal[msg.sender] += msg.value;
+        numOfPeriod[msg.sender] += _period;
+        require(numOfPeriod[msg.sender] <= 12 && numOfPeriod[msg.sender] > =0, "期數最多12期，最少0期!");
+        emit CDEvent(msg.sender, msg.value, _period,now);
+    }
+//定存期滿，令定存金額為weiValue，並transfer本金加利息給乙太帳戶，並將本金和期數歸零
+    function terminateFullCD() public payable{
+        uint256 weiValue = principal[msg.sender];
+        
+        msg.sender.transfer(weiValue+weiValue*numOfPeriod[msg.sender]*1/100);
+        
+        emit terminateFullCDEvent(msg.sender,weiValue+weiValue*numOfPeriod[msg.sender]*1/100, now);
+        principal[msg.sender] = 0;
+        numOfPeriod[msg.sender] = 0;
+    }
+//定存解約，呼叫提前解約的期數(terminateEarlyCD)，使用兩個require來判斷提前解約期數是否在0-12之間，
+//令定存金額為weiValue，並transfer本金加利息給乙太帳戶，並將principal(本金)和numOfPeriod(期數)歸零。
+    function terminateEarlyCD(uint256 completedPeriod) public payable{
+        uint256 weiValue = principal[msg.sender];
+        require(completedPeriod <=  numOfPeriod[msg.sender], "期數超過購買定存之期數");
+        require(completedPeriod <= 12 && completedPeriod > =0, "期數最多12期，最少0期!");
+        msg.sender.transfer(weiValue+weiValue*completedPeriod*1/100);
+        
+        emit terminateEarlyCDEvent(msg.sender,weiValue+weiValue*releasetime*1/100, now);
+        principal[msg.sender] = 0;
+        numOfPeriod[msg.sender] = 0;
+    }
+
+
+在index.js中
+
+//分別令了六個參數
+    let principal = $('#principal');
+    let numOfPeriod = $('#numOfPeriod');
+    let buyCDButton = $('#buyCDButtonn');
+    let expireButton = $('#expireButtonn');
+    let completedPeriod = $('#completedPeriod');
+    let earlyExpireButton = $('#earlyExpireButtonn');
+
+//當按下購買定存按鍵時
+//expireButton中
+	// 更新介面 
+	waitTransactionStatus()
+	var a = document.getElementById("principal").value ;   //取得principal欄位的輸入值，獲得購買定存金額
+	var b = document.getElementById("numOfPeriod").value ; //取得numOfPeriod欄位的輸入值，獲得購買定存之期數
+	$("#money").text("金額: " + a);                        //更新money欄位資料，後面加上方取得的principal
+  $("#year").text("期數: " + b);                               //更新year欄位資料，後面加上方取得的numOfPeriod
+  
+//當按下合約期滿按鍵時
+//completedPeriod中
+	// 更新介面
+	waitTransactionStatus()
+	$("#money").text("金額: ");                       //將顯示的金額刪除
+  $("#year").text("期數: ");                              //將顯示的期數刪除
+
+//當按下提前解約按鍵時
+//earlyExpireButton中
+	// 更新介面
+	waitTransactionStatus()
+	$("#money").text("金額: ");                       //將顯示的金額刪除
+  $("#year").text("期數: ");                              //將顯示的期數刪除
+
+
+在bank.js中(ABI)
+
+//name：a string，function 名稱
+//type：a string，"function", "Event", "address" , "uint256" 等等
+//inputs：an array，function 輸入的參數，包含：name,type,components
+//outputs：an array，function 的回傳值
+//payable：true，如果 function 可收 Ether，預設為 false
+//constant：true，如果 function 不會改寫區塊鏈的狀態，反之為 false
+//stateMutability：a string，其值可能為以下其中之一："pure"（不會讀和寫區塊鏈狀態）、"view"（會讀區塊鏈狀態，但不會改寫區塊鏈狀態）
+//、"payable" and "nonpayable"（會改寫區塊鏈狀態，且如可收 Ether 為 "payable"，反之為 "nonpayable"）
+
+//function們
+//completedPeriod(定存到期)
+	{
+		"constant": false,
+		"inputs": [],
+		"name": "completedPeriod",  //定存到期
+		"outputs": [],
+		"payable": true,
+		"stateMutability": "payable",
+		"type": "function"
+	},
+//terminateEarlyCD(提前解約)
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "terminateEarlyCD", //提前解約期數
+				"type": "uint256"
+			}
+		],
+		"name": "CDcancel", //提前解約
+		"outputs": [],
+		"payable": true,
+		"stateMutability": "payable",
+		"type": "function"
+	},
+//CD(購買定存)
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "time", //購買定存的期數
+				"type": "uint256"
+			}
+		],
+		"name": "CD", //購買定存
+		"outputs": [],
+		"payable": true,
+		"stateMutability": "payable",
+		"type": "function"
+	}
+//CDEvent(購買定存事件)
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"name": "value",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"name": "times",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "CDEvent",  //購買定存事件
+		"type": "event"
+	},
+//terminateFullCDEvent(定存期滿事件)
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"name": "value",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "terminateFullCDEvent",  //定存期滿事件
+		"type": "event"
+	},
+//terminateEarlyCDEvent(定存提前解約事件)
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"name": "value",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "terminateEarlyCDEvent",  //定存提前解約事件
+		"type": "event"
+	}
+];
